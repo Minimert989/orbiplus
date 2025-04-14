@@ -1,4 +1,11 @@
 {
+  "name": "columnium",
+  "version": "1.0.0",
+  "description": "Columnium Community Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node init_db.js && node update_db_users.js && node update_db_comments.js && node update_db_likes.js && node server.js"
+  },
   "dependencies": {
     "bcrypt": "^5.1.1",
     "express": "^5.1.0",
