@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>자유 게시판</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <h2>자유 게시판</h2>
+  <a href="/write.html?category=free">[자유 글쓰기]</a>
+  <ul id="free-posts"></ul>
+  <script>
+    fetch('/posts/list?category=free')
+      .then(res => res.json())
+      .then(posts => {
+        const list = document.getElementById('free-posts');
+        posts.forEach(p => {
+          const item = document.createElement('li');
+          item.innerHTML = `<a href="/view.html?id=\${p.id}">\${p.title}</a>`;
+          list.appendChild(item);
+        });
+      });
+  </script>
+</body>
+</html>

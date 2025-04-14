@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>글쓰기</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <h2>글쓰기</h2>
+  <form id="write-form">
+    <input type="text" name="title" placeholder="제목"><br>
+    <textarea name="content" rows="10" placeholder="내용"></textarea><br>
+    <input type="hidden" name="category" id="category-field">
+    <button type="submit">등록</button>
+  </form>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    document.getElementById('category-field').value = urlParams.get('category');
+
+    document.getElementById('write-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      data.user_id = 1;  // 테스트용 사용자 ID
+
+      const res = await fetch('/posts/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        alert('등록 완료');
+        location.href = '/';
+      } else {
+        alert('오류 발생');
+      }
+    };
+  </script>
+</body>
+</html>

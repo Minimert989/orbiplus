@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>사용자 프로필</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <h2 id="username">사용자 프로필</h2>
+  <p id="joined"></p>
+
+  <h3>작성한 글</h3>
+  <ul id="user-posts"></ul>
+
+  <h3>작성한 댓글</h3>
+  <ul id="user-comments"></ul>
+
+  <script>
+    const url = new URLSearchParams(location.search);
+    const userId = url.get('id');
+
+    fetch('/profile/' + userId).then(res => res.json()).then(user => {
+      document.getElementById('username').textContent = user.username;
+      document.getElementById('joined').textContent = '가입일: ' + user.created_at;
+    });
+
+    fetch('/profile/' + userId + '/posts').then(res => res.json()).then(posts => {
+      const ul = document.getElementById('user-posts');
+      posts.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="/view.html?id=${p.id}">${p.title}</a> (${p.category})`;
+        ul.appendChild(li);
+      });
+    });
+
+    fetch('/profile/' + userId + '/comments').then(res => res.json()).then(comments => {
+      const ul = document.getElementById('user-comments');
+      comments.forEach(c => {
+        const li = document.createElement('li');
+        li.textContent = `[${c.post_title}] ${c.content}`;
+        ul.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 대시보드</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <h1>관리자 대시보드</h1>
+
+  <h2>모든 게시글</h2>
+  <ul id="posts"></ul>
+
+  <h2>모든 댓글</h2>
+  <ul id="comments"></ul>
+
+  <h2>모든 사용자</h2>
+  <ul id="users"></ul>
+
+  <script>
+    fetch('/admin/posts').then(res => res.json()).then(posts => {
+      const ul = document.getElementById('posts');
+      posts.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>\${p.title}</strong> (\${p.category}) by \${p.username}
+          <button onclick="deletePost(\${p.id})">삭제</button>`;
+        ul.appendChild(li);
+      });
+    });
+
+    fetch('/admin/comments').then(res => res.json()).then(comments => {
+      const ul = document.getElementById('comments');
+      comments.forEach(c => {
+        const li = document.createElement('li');
+        li.innerHTML = `[\${c.post_id}] \${c.username}: \${c.content}
+          <button onclick="deleteComment(\${c.id})">삭제</button>`;
+        ul.appendChild(li);
+      });
+    });
+
+    fetch('/admin/users').then(res => res.json()).then(users => {
+      const ul = document.getElementById('users');
+      users.forEach(u => {
+        const li = document.createElement('li');
+        li.textContent = `\${u.username} (가입일: \${u.created_at})`;
+        ul.appendChild(li);
+      });
+    });
+
+    function deletePost(id) {
+      if (!confirm('이 글을 삭제하시겠습니까?')) return;
+      fetch('/admin/post/' + id, { method: 'DELETE' })
+        .then(() => location.reload());
+    }
+
+    function deleteComment(id) {
+      if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+      fetch('/admin/comment/' + id, { method: 'DELETE' })
+        .then(() => location.reload());
+    }
+  </script>
+</body>
+</html>

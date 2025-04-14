@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>칼럼 게시판</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <h2>칼럼 게시판</h2>
+  <a href="/write.html?category=column">[칼럼 쓰기]</a>
+  <ul id="column-posts"></ul>
+  <script>
+    fetch('/posts/list?category=column')
+      .then(res => res.json())
+      .then(posts => {
+        const list = document.getElementById('column-posts');
+        posts.forEach(p => {
+          const item = document.createElement('li');
+          item.innerHTML = `<a href="/view.html?id=\${p.id}">\${p.title}</a>`;
+          list.appendChild(item);
+        });
+      });
+  </script>
+</body>
+</html>
