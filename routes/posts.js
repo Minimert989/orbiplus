@@ -29,3 +29,16 @@ router.get('/:id', (req, res) => {
 });
 
 module.exports = router;
+
+// GET /posts/user/:user_id → 특정 사용자의 글 목록
+router.get('/user/:user_id', (req, res) => {
+  const { user_id } = req.params;
+  db.all(
+    "SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC",
+    [user_id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: 'Failed to fetch user posts' });
+      res.json(rows);
+    }
+  );
+});
