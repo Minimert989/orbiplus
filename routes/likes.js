@@ -11,31 +11,60 @@ router.post('/toggle', (req, res) => {
     return res.status(400).json({ error: 'post_id, user_id required' });
   }
 
-  db.get("SELECT * FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id], (err, row) => {
-    if (err) return res.status(500).json({ error: 'DB lookup error' });
+  // 최종 응답 함수: liked 상태와 좋아요 수 반환
+  const updateCountAndRespond = (liked) => {
+    db.get(
+      "SELECT COUNT(*) as count FROM likes WHERE post_id = ?",
+      [post_id],
+      (err, row) => {
+        if (err) return res.status(500).json({ error: 'Failed to fetch like count' });
+        res.json({ liked, count: row.count });
+      }
+    );
+  };
 
-    if (row) {
-      // 이미 좋아요 했으면 삭제
-      db.run("DELETE FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id], function (err) {
-        if (err) return res.status(500).json({ error: 'Failed to remove like' });
-        return res.json({ liked: false });
-      });
-    } else {
-      // 좋아요 안 했으면 추가
-      db.run("INSERT INTO likes (post_id, user_id) VALUES (?, ?)", [post_id, user_id], function (err) {
-        if (err) return res.status(500).json({ error: 'Failed to add like' });
-        return res.json({ liked: true });
-      });
+  // 먼저 유저가 이미 좋아요 했는지 확인
+  db.get(
+    "SELECT * FROM likes WHERE post_id = ? AND user_id = ?",
+    [post_id, user_id],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: 'DB lookup error' });
+
+      if (row) {
+        // 좋아요 되어 있으면 삭제
+        db.run(
+          "DELETE FROM likes WHERE post_id = ? AND user_id = ?",
+          [post_id, user_id],
+          function (err) {
+            if (err) return res.status(500).json({ error: 'Failed to remove like' });
+            updateCountAndRespond(false);
+          }
+        );
+      } else {
+        // 좋아요 안 되어 있으면 추가
+        db.run(
+          "INSERT INTO likes (post_id, user_id) VALUES (?, ?)",
+          [post_id, user_id],
+          function (err) {
+            if (err) return res.status(500).json({ error: 'Failed to add like' });
+            updateCountAndRespond(true);
+          }
+        );
+      }
     }
-  });
+  );
 });
 
-// 좋아요 개수 가져오기
+// 좋아요 개수만 조회 API
 router.get('/count/:post_id', (req, res) => {
-  db.get("SELECT COUNT(*) as count FROM likes WHERE post_id = ?", [req.params.post_id], (err, row) => {
-    if (err) return res.status(500).json({ count: 0, error: 'DB error' });
-    res.json({ count: row.count });
-  });
+  db.get(
+    "SELECT COUNT(*) as count FROM likes WHERE post_id = ?",
+    [req.params.post_id],
+    (err, row) => {
+      if (err) return res.status(500).json({ count: 0, error: 'DB error' });
+      res.json({ count: row.count });
+    }
+  );
 });
 
 module.exports = router;
