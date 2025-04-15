@@ -2,61 +2,103 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>관리자 대시보드</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <title>관리자 페이지</title>
 </head>
 <body>
-  <h1>관리자 대시보드</h1>
+  <h1>관리자 페이지</h1>
+  <p>글 / 댓글 / 사용자 목록을 확인하고 삭제할 수 있습니다.</p>
 
-  <h2>모든 게시글</h2>
+  <h2>전체 글</h2>
   <ul id="posts"></ul>
 
-  <h2>모든 댓글</h2>
+  <h2>전체 댓글</h2>
   <ul id="comments"></ul>
 
-  <h2>모든 사용자</h2>
+  <h2>전체 사용자</h2>
   <ul id="users"></ul>
 
   <script>
-    fetch('/admin/posts').then(res => res.json()).then(posts => {
-      const ul = document.getElementById('posts');
-      posts.forEach(p => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>\${p.title}</strong> (\${p.category}) by \${p.username}
-          <button onclick="deletePost(\${p.id})">삭제</button>`;
-        ul.appendChild(li);
-      });
-    });
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      location.href = '/auth/login.html';
+    }
 
-    fetch('/admin/comments').then(res => res.json()).then(comments => {
-      const ul = document.getElementById('comments');
-      comments.forEach(c => {
-        const li = document.createElement('li');
-        li.innerHTML = `[\${c.post_id}] \${c.username}: \${c.content}
-          <button onclick="deleteComment(\${c.id})">삭제</button>`;
-        ul.appendChild(li);
+    // 관리자 인증 확인
+    fetch('/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(user => {
+        if (!user.is_admin) {
+          alert("관리자 전용 페이지입니다.");
+          location.href = '/';
+        } else {
+          loadAllData();
+        }
       });
-    });
 
-    fetch('/admin/users').then(res => res.json()).then(users => {
-      const ul = document.getElementById('users');
-      users.forEach(u => {
-        const li = document.createElement('li');
-        li.textContent = `\${u.username} (가입일: \${u.created_at})`;
-        ul.appendChild(li);
-      });
-    });
+    function loadAllData() {
+      // 전체 글 불러오기
+      fetch('/admin/posts', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(posts => {
+          const ul = document.getElementById('posts');
+          posts.forEach(p => {
+            const li = document.createElement('li');
+            li.innerHTML = `[${p.category}] <strong>${p.title}</strong> (id: ${p.id})
+              <button onclick="deletePost(${p.id})">삭제</button>`;
+            ul.appendChild(li);
+          });
+        });
 
+      // 전체 댓글 불러오기
+      fetch('/admin/comments', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(comments => {
+          const ul = document.getElementById('comments');
+          comments.forEach(c => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${c.username}</strong> on <em>${c.post_title}</em>: ${c.content}
+              <button onclick="deleteComment(${c.id})">삭제</button>`;
+            ul.appendChild(li);
+          });
+        });
+
+      // 전체 유저 불러오기
+      fetch('/admin/users', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(users => {
+          const ul = document.getElementById('users');
+          users.forEach(u => {
+            const li = document.createElement('li');
+            li.textContent = `${u.username} (ID: ${u.id}) ${u.is_admin ? '[관리자]' : ''}`;
+            ul.appendChild(li);
+          });
+        });
+    }
+
+    // 삭제 기능
     function deletePost(id) {
       if (!confirm('이 글을 삭제하시겠습니까?')) return;
-      fetch('/admin/post/' + id, { method: 'DELETE' })
-        .then(() => location.reload());
+      fetch(`/admin/posts/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(() => location.reload());
     }
 
     function deleteComment(id) {
       if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
-      fetch('/admin/comment/' + id, { method: 'DELETE' })
-        .then(() => location.reload());
+      fetch(`/admin/comments/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(() => location.reload());
     }
   </script>
 </body>
