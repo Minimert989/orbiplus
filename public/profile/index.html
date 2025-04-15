@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>내 프로필</title>
+</head>
+<body>
+  <h2>내 프로필</h2>
+  <div id="user-info">불러오는 중...</div>
+
+  <h3>내가 쓴 글</h3>
+  <ul id="my-posts"></ul>
+
+  <h3>내가 쓴 댓글</h3>
+  <ul id="my-comments"></ul>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      location.href = '/auth/login.html';
+    }
+
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+
+    fetch('/auth/me', { headers })
+      .then(res => res.json())
+      .then(user => {
+        if (user.error) {
+          alert('토큰이 만료되었거나 유효하지 않습니다.');
+          return location.href = '/auth/login.html';
+        }
+
+        document.getElementById('user-info').textContent =
+          `아이디: ${user.username} (ID: ${user.id})`;
+
+        fetch(`/posts/user/${user.id}`)
+          .then(res => res.json())
+          .then(posts => {
+            const ul = document.getElementById('my-posts');
+            if (!posts.length) ul.innerHTML = '<li>작성한 글이 없습니다.</li>';
+            posts.forEach(p => {
+              const li = document.createElement('li');
+              li.innerHTML = `<a href="/view.html?id=${p.id}">${p.title}</a>`;
+              ul.appendChild(li);
+            });
+          });
+
+        fetch(`/comments/user/${user.id}`)
+          .then(res => res.json())
+          .then(comments => {
+            const ul = document.getElementById('my-comments');
+            if (!comments.length) ul.innerHTML = '<li>작성한 댓글이 없습니다.</li>';
+            comments.forEach(c => {
+              const li = document.createElement('li');
+              li.innerHTML = `<strong>${c.post_title}:</strong> ${c.content} <small>${c.created_at}</small>`;
+              ul.appendChild(li);
+            });
+          });
+      });
+  </script>
+</body>
+</html>
