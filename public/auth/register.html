@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원가입</title>
+</head>
+<body>
+  <h2>회원가입</h2>
+  <form id="register-form">
+    <input type="text" name="username" placeholder="아이디" required /><br />
+    <input type="password" name="password" placeholder="비밀번호" required /><br />
+    <button type="submit">가입하기</button>
+  </form>
+
+  <p id="result"></p>
+
+  <script>
+    document.getElementById('register-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const username = e.target.username.value.trim();
+      const password = e.target.password.value;
+
+      const res = await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        document.getElementById('result').textContent = '가입 성공! 로그인 페이지로 이동합니다.';
+        setTimeout(() => window.location.href = '/auth/login.html', 1500);
+      } else {
+        document.getElementById('result').textContent = `에러: ${result.error}`;
+      }
+    };
+  </script>
+</body>
+</html>
