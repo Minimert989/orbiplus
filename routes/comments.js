@@ -61,3 +61,20 @@ router.delete('/:id', (req, res) => {
 });
 
 module.exports = router;
+
+// GET /comments/user/:user_id → 특정 사용자의 댓글 목록
+router.get('/user/:user_id', (req, res) => {
+  const { user_id } = req.params;
+  db.all(
+    `SELECT c.id, c.content, c.created_at, p.title AS post_title
+     FROM comments c
+     JOIN posts p ON c.post_id = p.id
+     WHERE c.user_id = ?
+     ORDER BY c.created_at DESC`,
+    [user_id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: 'Failed to fetch user comments' });
+      res.json(rows);
+    }
+  );
+});
