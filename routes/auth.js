@@ -26,3 +26,20 @@ router.post('/login', (req, res) => {
 });
 
 module.exports = router;
+// JWT 인증 미들웨어
+function authenticate(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token provided' });
+
+  jwt.verify(token, SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = user;
+    next();
+  });
+}
+
+// GET /auth/me → 로그인 사용자 정보 반환
+router.get('/me', authenticate, (req, res) => {
+  res.json({ id: req.user.id, username: req.user.username });
+});
