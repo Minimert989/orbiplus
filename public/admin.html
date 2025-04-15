@@ -3,6 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>관리자 페이지</title>
+  <style>
+    #log {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #f0f0f0;
+      font-family: monospace;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-line;
+    }
+  </style>
 </head>
 <body>
   <h1>관리자 페이지</h1>
@@ -17,10 +29,20 @@
   <h2>전체 사용자</h2>
   <ul id="users"></ul>
 
+  <h2>콘솔 로그</h2>
+  <div id="log">[로그 시작]</div>
+
   <script>
     const token = localStorage.getItem('token');
+    const logDiv = document.getElementById('log');
+    const log = msg => {
+      const time = new Date().toLocaleTimeString();
+      logDiv.textContent += `\n[${time}] ${msg}`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    };
+
     if (!token) {
-      alert("로그인이 필요합니다.");
+      log("로그인이 필요합니다.");
       location.href = '/auth/login.html';
     }
 
@@ -30,25 +52,27 @@
       .then(res => res.json())
       .then(user => {
         if (!user.is_admin) {
-          alert("관리자 전용 페이지입니다.");
+          log("관리자 전용 페이지입니다.");
           location.href = '/';
         } else {
+          log("관리자 인증 성공");
           loadAllData();
         }
       })
-      .catch(err => alert("auth/me 오류: " + err));
+      .catch(err => log("auth/me 오류: " + err));
 
     function loadAllData() {
       fetch('/admin/posts', {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
-          alert("[posts] 상태코드: " + res.status);
+          log("[posts] 상태코드: " + res.status);
           return res.json();
         })
         .then(posts => {
-          alert("[posts] 데이터 수: " + posts.length);
+          log("[posts] 데이터 수: " + posts.length);
           const ul = document.getElementById('posts');
+          if (posts.length === 0) ul.innerHTML = '<li>게시글이 없습니다.</li>';
           posts.forEach(p => {
             const li = document.createElement('li');
             li.innerHTML = `[${p.category}] <strong>${p.title}</strong> (id: ${p.id})
@@ -56,18 +80,19 @@
             ul.appendChild(li);
           });
         })
-        .catch(err => alert("[posts] 오류: " + err));
+        .catch(err => log("[posts] 오류: " + err));
 
       fetch('/admin/comments', {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
-          alert("[comments] 상태코드: " + res.status);
+          log("[comments] 상태코드: " + res.status);
           return res.json();
         })
         .then(comments => {
-          alert("[comments] 데이터 수: " + comments.length);
+          log("[comments] 데이터 수: " + comments.length);
           const ul = document.getElementById('comments');
+          if (comments.length === 0) ul.innerHTML = '<li>댓글이 없습니다.</li>';
           comments.forEach(c => {
             const li = document.createElement('li');
             li.innerHTML = `<strong>${c.username}</strong> on <em>${c.post_title}</em>: ${c.content}
@@ -75,25 +100,26 @@
             ul.appendChild(li);
           });
         })
-        .catch(err => alert("[comments] 오류: " + err));
+        .catch(err => log("[comments] 오류: " + err));
 
       fetch('/admin/users', {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
-          alert("[users] 상태코드: " + res.status);
+          log("[users] 상태코드: " + res.status);
           return res.json();
         })
         .then(users => {
-          alert("[users] 데이터 수: " + users.length);
+          log("[users] 데이터 수: " + users.length);
           const ul = document.getElementById('users');
+          if (users.length === 0) ul.innerHTML = '<li>사용자가 없습니다.</li>';
           users.forEach(u => {
             const li = document.createElement('li');
             li.textContent = `${u.username} (ID: ${u.id}) ${u.is_admin ? '[관리자]' : ''}`;
             ul.appendChild(li);
           });
         })
-        .catch(err => alert("[users] 오류: " + err));
+        .catch(err => log("[users] 오류: " + err));
     }
 
     function deletePost(id) {
