@@ -36,19 +36,18 @@
           loadAllData();
         }
       })
-      .catch(err => console.error("auth/me error:", err));
+      .catch(err => alert("auth/me 오류: " + err));
 
     function loadAllData() {
-      // 전체 글
       fetch('/admin/posts', {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
-          console.log('[posts] status:', res.status);
+          alert("[posts] 상태코드: " + res.status);
           return res.json();
         })
         .then(posts => {
-          console.log('[posts] data:', posts);
+          alert("[posts] 데이터 수: " + posts.length);
           const ul = document.getElementById('posts');
           posts.forEach(p => {
             const li = document.createElement('li');
@@ -57,18 +56,17 @@
             ul.appendChild(li);
           });
         })
-        .catch(err => console.error('[posts] error:', err));
+        .catch(err => alert("[posts] 오류: " + err));
 
-      // 전체 댓글
       fetch('/admin/comments', {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
-          console.log('[comments] status:', res.status);
+          alert("[comments] 상태코드: " + res.status);
           return res.json();
         })
         .then(comments => {
-          console.log('[comments] data:', comments);
+          alert("[comments] 데이터 수: " + comments.length);
           const ul = document.getElementById('comments');
           comments.forEach(c => {
             const li = document.createElement('li');
@@ -77,18 +75,17 @@
             ul.appendChild(li);
           });
         })
-        .catch(err => console.error('[comments] error:', err));
+        .catch(err => alert("[comments] 오류: " + err));
 
-      // 전체 사용자
       fetch('/admin/users', {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
-          console.log('[users] status:', res.status);
+          alert("[users] 상태코드: " + res.status);
           return res.json();
         })
         .then(users => {
-          console.log('[users] data:', users);
+          alert("[users] 데이터 수: " + users.length);
           const ul = document.getElementById('users');
           users.forEach(u => {
             const li = document.createElement('li');
@@ -96,7 +93,7 @@
             ul.appendChild(li);
           });
         })
-        .catch(err => console.error('[users] error:', err));
+        .catch(err => alert("[users] 오류: " + err));
     }
 
     function deletePost(id) {
