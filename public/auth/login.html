@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>로그인</title>
+</head>
+<body>
+  <h2>로그인</h2>
+  <form id="login-form">
+    <input type="text" name="username" placeholder="아이디" required /><br />
+    <input type="password" name="password" placeholder="비밀번호" required /><br />
+    <button type="submit">로그인</button>
+  </form>
+
+  <p id="result"></p>
+
+  <script>
+    document.getElementById('login-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const username = e.target.username.value.trim();
+      const password = e.target.password.value;
+
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const result = await res.json();
+      if (result.token) {
+        localStorage.setItem('token', result.token);
+        document.getElementById('result').textContent = '로그인 성공!';
+        setTimeout(() => window.location.href = '/', 1500); // 홈으로 이동
+      } else {
+        document.getElementById('result').textContent = `에러: ${result.error}`;
+      }
+    };
+  </script>
+</body>
+</html>
