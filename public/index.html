@@ -14,12 +14,44 @@
       <a href="/board/free.html">자유</a>
       <a href="/board/column.html">칼럼</a>
       <a href="/board/debate.html">토론</a>
+      <span id="auth-links" style="float: right;"></span>
     </nav>
   </header>
+
   <main>
     <h2>최근 게시물</h2>
     <ul id="recent-posts"></ul>
   </main>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const authLinks = document.getElementById('auth-links');
+
+    if (token) {
+      const logoutBtn = document.createElement('a');
+      logoutBtn.href = '#';
+      logoutBtn.textContent = '로그아웃';
+      logoutBtn.onclick = () => {
+        localStorage.removeItem('token');
+        alert('로그아웃 되었습니다.');
+        location.reload();
+      };
+      authLinks.appendChild(logoutBtn);
+    } else {
+      const registerLink = document.createElement('a');
+      registerLink.href = '/auth/register.html';
+      registerLink.textContent = '회원가입';
+      registerLink.style.marginRight = '10px';
+
+      const loginLink = document.createElement('a');
+      loginLink.href = '/auth/login.html';
+      loginLink.textContent = '로그인';
+
+      authLinks.appendChild(registerLink);
+      authLinks.appendChild(loginLink);
+    }
+  </script>
+
   <script src="/assets/js/main.js"></script>
 </body>
 </html>
