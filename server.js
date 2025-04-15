@@ -6,6 +6,8 @@ const postRoutes = require('./routes/posts');
 const commentRoutes = require('./routes/comments');
 const likeRoutes = require('./routes/likes');
 const adminRoutes = require('./routes/admin');  // ✅ 추가
+const backupRoutes = require('./routes/backup');
+app.use('/backup', backupRoutes);
 
 app.use(express.json());
 app.use(express.static('public'));
