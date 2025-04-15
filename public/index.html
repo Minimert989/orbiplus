@@ -28,6 +28,14 @@
     const authLinks = document.getElementById('auth-links');
 
     if (token) {
+      // ✅ 내 프로필 링크 추가
+      const profileLink = document.createElement('a');
+      profileLink.href = '/profile/index.html';
+      profileLink.textContent = '내 프로필';
+      profileLink.style.marginRight = '10px';
+      authLinks.appendChild(profileLink);
+
+      // ✅ 로그아웃 버튼 추가
       const logoutBtn = document.createElement('a');
       logoutBtn.href = '#';
       logoutBtn.textContent = '로그아웃';
@@ -38,6 +46,7 @@
       };
       authLinks.appendChild(logoutBtn);
     } else {
+      // ✅ 회원가입 / 로그인 버튼
       const registerLink = document.createElement('a');
       registerLink.href = '/auth/register.html';
       registerLink.textContent = '회원가입';
