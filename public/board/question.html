@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>질문 게시판</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
   <h2>질문 게시판</h2>
-  <a href="/write.html?category=question">[질문 쓰기]</a>
   <ul id="question-posts"></ul>
+
   <script>
     fetch('/posts/list?category=question')
       .then(res => res.json())
