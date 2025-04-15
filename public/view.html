@@ -2,11 +2,18 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>글 보기</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <title>게시글 보기</title>
 </head>
 <body>
-  <article id="post-container"></article>
+  <div id="post-container"></div>
+
+  <h3>댓글</h3>
+  <form id="comment-form">
+    <textarea name="content" rows="3" placeholder="댓글을 입력하세요..."></textarea><br>
+    <button type="submit">댓글 작성</button>
+  </form>
+  <ul id="comment-list"></ul>
+
   <script>
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -14,102 +21,70 @@
     fetch('/posts/' + id)
       .then(res => res.json())
       .then(post => {
+        if (post.error) {
+          document.body.innerHTML = '<h2>글을 찾을 수 없습니다.</h2>';
+          return;
+        }
+
         const container = document.getElementById('post-container');
         container.innerHTML = `
-          <h2>\${post.title}</h2>
-          <p><strong>카테고리:</strong> \${post.category}</p>
-          <p>\${post.content.replace(/\n/g, '<br>')}</p>
+          <h2>${post.title}</h2>
+          <p><strong>카테고리:</strong> ${post.category}</p>
+          <p>${(post.content || '').replace(/\n/g, '<br>')}</p>
+          <p>
+            <button id="like-btn">좋아요 👍 (<span id="like-count">0</span>)</button>
+          </p>
         `;
+
+        fetch('/likes/count/' + id)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('like-count').textContent = data.count;
+          });
+
+        document.getElementById('like-btn').onclick = async () => {
+          const res = await fetch('/likes/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ post_id: id, user_id: 1 })
+          });
+          const result = await res.json();
+          const countElem = document.getElementById('like-count');
+          const current = parseInt(countElem.textContent);
+          countElem.textContent = result.liked ? current + 1 : current - 1;
+        };
       });
-  
-<p><button id="like-btn">좋아요 👍 (<span id="like-count">0</span>)</button></p>
-<script>
-  fetch('/likes/count/' + id)
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById('like-count').textContent = data.count;
-    });
 
-  document.getElementById('like-btn').onclick = async () => {
-    const res = await fetch('/likes/toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id: id, user_id: 1 })
-    });
-    const result = await res.json();
-    const delta = result.liked ? 1 : -1;
-    const count = parseInt(document.getElementById('like-count').textContent) + delta;
-    document.getElementById('like-count').textContent = count;
-  };
-</script>
-
-</script>
-
-<hr>
-<section>
-  <h3>댓글</h3>
-  <form id="comment-form">
-    <textarea name="content" rows="3" placeholder="댓글을 입력하세요..."></textarea><br>
-    <button type="submit">댓글 작성</button>
-  </form>
-  <ul id="comment-list"></ul>
-</section>
-<script>
-  const token = localStorage.getItem('token');  // 로그인 토큰이 있다면 (단순화)
-
-  fetch('/comments/' + id)
-    .then(res => res.json())
-    .then(comments => {
-      const list = document.getElementById('comment-list');
-      comments.forEach(c => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>\${c.username}</strong>: \${c.content} <small>(\${c.created_at})</small>`;
-        list.appendChild(li);
+    fetch('/comments/' + id)
+      .then(res => res.json())
+      .then(comments => {
+        const list = document.getElementById('comment-list');
+        comments.forEach(c => {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${c.username}</strong>: ${c.content} <small>(${c.created_at})</small>`;
+          list.appendChild(li);
+        });
       });
-    });
 
-  document.getElementById('comment-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const content = e.target.content.value;
-    const user_id = 1; // 테스트용 사용자 ID (로그인 시스템 도입 시 수정 필요)
+    document.getElementById('comment-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const content = e.target.content.value;
+      const user_id = 1;
 
-    const res = await fetch('/comments/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id: id, user_id, content })
-    });
+      const res = await fetch('/comments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: id, user_id, content })
+      });
 
-    const result = await res.json();
-    if (result.success) {
-      alert('댓글 등록 완료');
-      location.reload();
-    } else {
-      alert('댓글 등록 실패');
-    }
-  };
-
-<p><button id="like-btn">좋아요 👍 (<span id="like-count">0</span>)</button></p>
-<script>
-  fetch('/likes/count/' + id)
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById('like-count').textContent = data.count;
-    });
-
-  document.getElementById('like-btn').onclick = async () => {
-    const res = await fetch('/likes/toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ post_id: id, user_id: 1 })
-    });
-    const result = await res.json();
-    const delta = result.liked ? 1 : -1;
-    const count = parseInt(document.getElementById('like-count').textContent) + delta;
-    document.getElementById('like-count').textContent = count;
-  };
-</script>
-
-</script>
-
+      const result = await res.json();
+      if (result.success) {
+        alert('댓글 등록 완료');
+        location.reload();
+      } else {
+        alert('댓글 등록 실패');
+      }
+    };
+  </script>
 </body>
 </html>
